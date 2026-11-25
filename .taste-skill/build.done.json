@@ -1,0 +1,11 @@
+{
+ "page": "dist/index.html",
+ "dir": "C:\\Users\\User\\Desktop\\Codes\\Projects\\WebDev\\portweb\\portfolio-showcase",
+ "kind": "service",
+ "start": "2026-11-25T03:23:38.608Z",
+ "by": "start.mjs",
+ "url": null,
+ "root": "dist",
+ "category": "web developer portfolio",
+ "primary": "Email me"
+}

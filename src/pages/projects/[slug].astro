@@ -1,0 +1,92 @@
+---
+// One page per project in src/content/projects: hero (split, the project's picture big) ·
+// overview beside the details table · three more projects · the shared close and footer.
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import ProjectVisual from '../../components/ProjectVisual.astro';
+import { site } from '../../data/site';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      // the next three in order, wrapping round, so every page links on
+      more: [1, 2].map((k) => projects[(i + k) % projects.length]).filter((p) => p.id !== project.id),
+      all: projects,
+    },
+  }));
+}
+
+const { project, more, all } = Astro.props;
+const { Content } = await render(project);
+const d = project.data;
+const month = d.date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+const visuals = [...new Set(all.map((p) => p.data.visual))];
+---
+<Base title={`${d.title}: a project by ${site.name}`} description={d.summary} fragments={visuals}>
+  <style is:inline slot="head">
+    .project-hero .hero__media { display: block; }
+    .project-hero .hero__media > .frame { height: 100%; --ratio: 0px; }
+    .project-hero .hero__media > .frame > .frame__img { width: 100%; height: 100%; object-fit: cover; }
+    #more .panel { --p-h: 280px; }
+    #more .grid { align-items: start; }
+    #overview .prose > * + * { margin-top: var(--s-5); }
+    #overview .prose p { font-size: var(--t-lead); line-height: 1.5; max-width: 52ch; }
+    @media (max-width: 1023px) { .project-hero .hero__media > .frame { min-height: 320px; } }
+    @media (max-width: 639px) { #more .panel { --p-h: 220px; } .project-hero .hero__media > .frame { min-height: 260px; } }
+  </style>
+
+  <section class="hero hero--split project-hero" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <p class="hero__kicker">{month} · {d.timeline}</p>
+        <h1 id="hero-h">{d.title}</h1>
+        <p class="hero__lead">{d.summary}</p>
+        {(d.live || d.repo) && (
+          <div class="btn-row">
+            {d.live && <a class="btn btn--secondary" href={d.live}>Open the live site</a>}
+            {d.repo && <a class="btn btn--secondary" href={d.repo}>Read the code</a>}
+          </div>
+        )}
+      </div>
+      <!-- CLIENT FILE {project.id} cover: public/assets/img/{project.id}.webp (16:10, 1600x1000 or larger);
+           add it as `cover` in src/content/projects/{project.id}.md. Stand-in: the kit's UI panel. -->
+      <div class="hero__media span-6 start-7">
+        <div class="frame panel"><ProjectVisual project={project} size="hero" eager /></div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="overview" aria-labelledby="overview-h">
+    <div class="wrap grid grid--top">
+      <div class="span-5">
+        <div class="section-head"><h2 id="overview-h">What I built and why</h2></div>
+        <div class="prose"><Content /></div>
+      </div>
+      <div class="span-6 start-7">
+        <h3 class="t-label muted">Project details</h3>
+        <ul class="rows rows--spec">
+          <li><span class="rows__name">Role</span><span class="rows__value">{d.role}</span></li>
+          <li><span class="rows__name">Finished</span><span class="rows__value">{month}</span></li>
+          <li><span class="rows__name">Time taken</span><span class="rows__value">{d.timeline}</span></li>
+          <li><span class="rows__name">Built with</span><span class="rows__value">{d.stack.join(', ')}</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="more" aria-labelledby="more-h">
+    <div class="wrap">
+      <div class="section-head section-head--row">
+        <div><h2 id="more-h">More projects</h2></div>
+        <a class="link" href={`${import.meta.env.BASE_URL}#projects`}>See all {all.length} projects</a>
+      </div>
+      <div class="grid">
+        {more.map((pr) => <ProjectCard project={pr} />)}
+      </div>
+    </div>
+  </section>
+</Base>

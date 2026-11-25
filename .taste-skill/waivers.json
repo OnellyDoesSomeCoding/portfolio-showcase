@@ -1,0 +1,7 @@
+[
+  {
+    "check": "section-gaps",
+    "target": "section#skills / section#experience [390]",
+    "reason": "Skills fits one phone screen exactly and its gap is the system's padb + padt; the larger median comes from the two-screen phone sections (experience, projects). Giving skills a second phone screen to match left that screen empty, which reads worse."
+  }
+]

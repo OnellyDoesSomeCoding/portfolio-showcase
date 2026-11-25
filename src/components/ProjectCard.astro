@@ -1,0 +1,17 @@
+---
+// One project as a linked card (cards.md): the label, the title, two lines, then the panel with its
+// picture. The whole card is the link, so it lifts 2px on hover (motion layer).
+import type { CollectionEntry } from 'astro:content';
+import ProjectVisual from './ProjectVisual.astro';
+
+interface Props { project: CollectionEntry<'projects'>; span?: 4 | 6 }
+const { project, span = 6 } = Astro.props;
+const { title, summary, stack, date } = project.data;
+const href = `${import.meta.env.BASE_URL}projects/${project.id}/`;
+---
+<a class={`card card--row project-card span-${span}`} href={href}>
+  <p class="t-label muted">{date.getFullYear()} · {stack.slice(0, 3).join(', ')}</p>
+  <h3>{title}</h3>
+  <p>{summary}</p>
+  <div class="panel frame"><ProjectVisual project={project} /></div>
+</a>

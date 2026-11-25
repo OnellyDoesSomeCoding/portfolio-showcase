@@ -1,0 +1,29 @@
+{
+  "palettes": [
+    "stone-blueprint",
+    "stone-blueprint",
+    "stone-blueprint"
+  ],
+  "types": [
+    "rethink",
+    "manrope",
+    "source-serif"
+  ],
+  "dealt": [
+    "rethink",
+    "manrope",
+    "source-serif"
+  ],
+  "moments": [
+    {
+      "id": "photo-chapters",
+      "at": "2026-11-25T03:23:38.742Z",
+      "seed": "86ffbc8c"
+    },
+    {
+      "id": "word-highlight",
+      "at": "2026-11-25T03:25:05.721Z",
+      "seed": "8d678daf"
+    }
+  ]
+}

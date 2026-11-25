@@ -1,0 +1,55 @@
+---
+// Every project, newest first: the hero shows the newest one big, the list below links to each page.
+// A ruled list grows with the portfolio where a card grid would outgrow its two screens.
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ProjectVisual from '../../components/ProjectVisual.astro';
+import { site } from '../../data/site';
+
+const base = import.meta.env.BASE_URL;
+const all = (await getCollection('projects')).sort((a, b) => +b.data.date - +a.data.date);
+const latest = all[0];
+const years = all.map((p) => p.data.date.getFullYear());
+const span = `${Math.min(...years)} to ${Math.max(...years)}`;
+---
+<Base title={`Projects by ${site.name}, ${site.role}`} description={`All ${all.length} projects by ${site.name}, from ${span}, each with a page on what was built and how.`} fragments={[latest.data.visual]}>
+  <style is:inline slot="head">
+    .project-hero .hero__media { display: block; }
+    .project-hero .hero__media > .frame { height: 100%; --ratio: 0px; }
+    #all .rows > li > a { display: contents; color: inherit; }
+    #all .rows__name { font-size: var(--t-lead); }
+    #all { --h: 1; }
+    @media (max-width: 1023px) { .project-hero .hero__media > .frame { min-height: 320px; } }
+    @media (max-width: 639px) { .project-hero .hero__media > .frame { min-height: 260px; } }
+  </style>
+
+  <section class="hero hero--split project-hero" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <h1 id="hero-h">Projects by {site.name}, {site.role}</h1>
+        <p class="hero__lead">{all.length} projects from {span}: what each one is for, what I built and what it was built with.</p>
+        <div class="btn-row">
+          <a class="btn btn--secondary" href={`${base}projects/${latest.id}/`}>Read the newest one</a>
+        </div>
+      </div>
+      <div class="hero__media span-6 start-7">
+        <a class="frame panel m-zoom" href={`${base}projects/${latest.id}/`} aria-label={latest.data.title}><ProjectVisual project={latest} size="hero" eager /></a>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="all" aria-labelledby="all-h">
+    <div class="wrap">
+      <div class="section-head"><h2 id="all-h">All projects, newest first</h2></div>
+      <ul class="rows">
+        {all.map((p) => (
+          <li>
+            <a class="rows__name link" href={`${base}projects/${p.id}/`}>{p.data.title}</a>
+            <p>{p.data.summary}</p>
+            <span class="rows__value">{p.data.date.getFullYear()} · {p.data.stack[0]}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>

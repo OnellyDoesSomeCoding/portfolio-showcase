@@ -1,0 +1,149 @@
+---
+// Home: hero (split) · about (word-highlight moment) · skills (dark band) · experience · projects (two screens).
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { site } from '../data/site';
+import { skills } from '../data/skills';
+import { experience, yearRange } from '../data/experience';
+
+const base = import.meta.env.BASE_URL;
+const u = (p: string) => base + p.replace(/^\//, '');
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const recent = [...projects].sort((a, b) => +b.data.date - +a.data.date);
+const latest = recent[0];
+const month = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+const firstYear = Math.min(...experience.map((r) => r.start));
+const toolCount = skills.reduce((n, g) => n + g.tools.length, 0);
+const fieldTools = skills.flatMap((g) => g.tools).slice(0, 14);
+const visuals = [...new Set([...projects.map((p) => p.data.visual), 'apps'])];
+const p = site.portrait;
+---
+<Base title={`${site.name}: ${site.role}, portfolio and projects`} description={site.description} home fragments={visuals} moment="word-highlight">
+  <style is:inline slot="head">
+    /* page CSS, inside visuals only */
+    #projects .panel { --p-h: 300px; }
+    #projects .grid { align-items: start; }
+    #skills .skill-groups { display: grid; gap: var(--s-6); margin: 0; }
+    #skills .skill-groups dd { margin: var(--s-2) 0 0; font-size: var(--t-lead); line-height: 1.5; }
+    #skills .skills-field { --ratio: 0px; height: 100%; min-height: 560px; }
+    #skills .ui-field__hub .mark { width: 28px; height: 28px; }
+    @media (min-width: 640px) and (max-width: 1023px) {
+      #skills .skills-field { min-height: 360px; }
+      #experience .frame { --ratio: 56.25%; }
+      #projects .panel { --p-h: 200px; }
+    }
+    @media (min-width: 1024px) and (max-width: 1279px) { #projects .panel { --p-h: 180px; } }
+    @media (max-width: 639px) {
+      #projects .panel { --p-h: 220px; }
+      #projects .wrap > .grid { display: none; }
+      #skills .skills-field { min-height: 280px; }
+      #experience .frame { --ratio: 120%; }
+    }
+  </style>
+
+  <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <h1 id="hero-h">{site.headline}</h1>
+        <p class="hero__lead">{site.lead}</p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href={`mailto:${site.email}`}>Email me<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+          <a class="btn btn--secondary" href="#projects">See my projects</a>
+        </div>
+      </div>
+      <!-- CLIENT FILE portrait: public/assets/img/portrait.webp (4:5, 1200x1500 or larger, your face in window light);
+           set it in src/data/site.ts. Stand-in: photo-f102345379 (code on a laptop screen, Wikimedia Commons). -->
+      <div class="hero__media span-6 start-7">
+        <picture>
+          <source media="(max-width: 639px)" srcset={`${u(p.phone)} 780w`} sizes="100vw">
+          <img src={u(p.src)} srcset={p.srcset.replace(/assets\//g, u('assets/'))} sizes="(max-width: 639px) 100vw, 75vw"
+            width={p.width} height={p.height} alt={p.alt} style={`--ly-pos: ${p.position}`} fetchpriority="high"
+            data-source={p.source} data-subject="portrait">
+        </picture>
+        <a class="ly-float" href={u(`projects/${latest.id}/`)}>
+          <div class="ly-float__row"><span class="ly-live">Latest project</span><span>{month(latest.data.date)}</span></div>
+          <div class="ly-float__title">{latest.data.title}</div>
+        </a>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section statement" id="about" data-moment="word-highlight" aria-label="About">
+    <div class="wrap">
+      <p class="t-label">About</p>
+      <p class="mo-wh__text">{site.statement.before} <strong>{site.statement.strong}</strong> {site.statement.after}</p>
+    </div>
+  </section>
+
+  <section class="section ground-inverse" id="skills" aria-labelledby="skills-h">
+    <div class="wrap grid grid--top">
+      <div class="span-5">
+        <div class="section-head">
+          <h2 id="skills-h">{toolCount} tools I build with. <span class="muted">Grouped by what they do.</span></h2>
+        </div>
+        <dl class="skill-groups">
+          {skills.map((g) => (
+            <div><dt class="t-label muted">{g.label}</dt><dd>{g.tools.map((t) => t.name).join(', ')}</dd></div>
+          ))}
+        </dl>
+      </div>
+      <!-- the kit's apps fragment: the first 14 tools round your mark; each logo is a real file in assets/icons -->
+      <div class="frame panel skills-field span-6 start-7">
+        <div class="stage stage--fade-br"><div class="at-corner wide" style="--w:560px;--ax:32px;--ay:40px;--ay-sm:16px">
+          <div class="ui ui-field" data-ui="apps" role="img" aria-label={`Logos of ${fieldTools.map((t) => t.name).join(', ')}`}>
+            <svg class="ui-field__lines" aria-hidden="true"></svg>
+            <ul class="ui-field__grid">
+              {fieldTools.slice(0, 7).map((t) => (
+                <li class="ui-field__tile" data-name={t.name}><img src={u(`assets/icons/${t.icon}.svg`)} alt="" data-icon={t.icon}><span class="ui-field__tag"><i></i>{t.name}</span></li>
+              ))}
+              <li class="ui-field__hub"><span class="mark" data-mark="ring" aria-hidden="true"></span></li>
+              {fieldTools.slice(7, 14).map((t) => (
+                <li class="ui-field__tile" data-name={t.name}><img src={u(`assets/icons/${t.icon}.svg`)} alt="" data-icon={t.icon}><span class="ui-field__tag"><i></i>{t.name}</span></li>
+              ))}
+            </ul>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="experience" style="--hm: 2" aria-labelledby="experience-h">
+    <div class="wrap grid grid--top">
+      <div class="span-5">
+        <div class="section-head">
+          <h2 id="experience-h">{experience.length} roles since {firstYear}</h2>
+          <p>Work experience, newest first, with what I did in each.</p>
+        </div>
+        <ul class="rows">
+          {experience.map((r) => (
+            <li><span class="rows__name">{r.title}, {r.org}</span><p>{r.line}</p><span class="rows__value">{yearRange(r)}</span></li>
+          ))}
+        </ul>
+      </div>
+      <!-- CLIENT FILE workspace: a photograph of you at work or your desk (4:5); stand-in: library frame d183 -->
+      <div class="frame frame--photo frame--square span-6 start-7">
+        <img class="frame__img" src={u('assets/img/photo-d183.webp')} srcset={`${u('assets/img/photo-d183-500.webp')} 500w, ${u('assets/img/photo-d183-960.webp')} 960w, ${u('assets/img/photo-d183.webp')} 1280w`}
+          sizes="(max-width: 639px) 160vw, (max-width: 1023px) 100vw, 66vw" width="1280" height="853" alt="An open notebook with a pencil across the pages on a dark wooden desk"
+          loading="lazy" decoding="async" data-source="library-057" data-subject="desk">
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2" id="projects" style="--hm: 2" aria-labelledby="projects-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head section-head--row">
+          <div><h2 id="projects-h">{Math.min(4, projects.length)} recent projects. <span class="muted">Each opens its own page.</span></h2></div>
+          <a class="link" href={u('projects/')}>See all {projects.length} projects</a>
+        </div>
+        <div class="grid">
+          {recent.slice(0, 2).map((pr) => <ProjectCard project={pr} />)}
+        </div>
+      </div>
+      <div class="grid">
+        {recent.slice(2, 4).map((pr) => <ProjectCard project={pr} />)}
+      </div>
+    </div>
+  </section>
+</Base>
